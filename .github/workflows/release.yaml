@@ -29,28 +29,28 @@ jobs:
       run: go mod download
       
     - name: Run tests
-      run: go test ./...
+      run: go test -v ./...
 
     - name: Build
       run: go build -o ghapps cmd/main.go
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: latest
-        release_name: Release latest
-        draft: false
-        prerelease: false
+    # - name: Create Release
+    #   id: create_release
+    #   uses: actions/create-release@v1
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   with:
+    #     tag_name: latest
+    #     release_name: Release latest
+    #     draft: false
+    #     prerelease: false
 
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./ghapps
-        asset_name: ghapps
-        asset_content_type: application/octet-stream
+    # - name: Upload Release Asset
+    #   uses: actions/upload-release-asset@v1
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   with:
+    #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+    #     asset_path: ./ghapps
+    #     asset_name: ghapps
+    #     asset_content_type: application/octet-stream
