@@ -6,9 +6,6 @@ on:
 permissions:
   contents: read
 
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 jobs:
   build:
     name: Build
@@ -26,4 +23,6 @@ jobs:
     - name: Run GoRelease
       uses: goreleaser/goreleaser-action@v4.2.0
       with:
-        args: release --rm-dist
+        args: release --clean
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
