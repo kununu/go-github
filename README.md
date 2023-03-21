@@ -10,26 +10,26 @@ on GitHub, like our [fetch-bots-ips](https://github.com/kununu/fetch-bots-ips).
 
 ## Usage
 
-To generate a new GitHub token that can be used to authenticate.
+### Get a new Access Token
+
+To generate a new GitHub App access token that can be used to authenticate.
 
 ```go
 package main
 
-import "github.com/kununu/go-github/apps"
+import "github.com/kununu/go-github/v1"
 
 func main() {
-  	// Create a new GithubApp with JWT authentication
-	ctx, err := github.GetJWTContext(appId, keyBytes)
-	if err != nil {
-		panic(err)
-	}
+// Create a new GithubApp with JWT authentication
+ghApp, err := github.NewGitHubApp(&github.GitHubAppConfig{
+		ApplicationID:  appId,
+		InstallationID: instId,
+		PrivateKey:     keyBytes,
+})
 
-	// Get GitHub auth token for the specified installation
-	token, err := github.GetAccessToken(ctx, instId)
-	if err != nil {
+token, err := ghApp.GetAccessToken()
+if err != nil {
 		panic(err)
-	}
-
 }
 ```
 
