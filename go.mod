@@ -1,4 +1,4 @@
-module github.com/kununu/go-github/v1
+module github.com/kununu/go-github
 
 go 1.20
 
