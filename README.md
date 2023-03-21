@@ -20,16 +20,17 @@ package main
 import "github.com/kununu/go-github"
 
 func main() {
-// Create a new GithubApp with JWT authentication
-ghApp, err := github.NewGitHubApp(&github.GitHubAppConfig{
+	// Create a new GithubApp with JWT authentication
+	ghApp, err := github.NewGitHubApp(&github.GitHubAppConfig{
 		ApplicationID:  appId,
 		InstallationID: instId,
 		PrivateKey:     keyBytes,
-})
+	})
 
-token, err := ghApp.GetAccessToken()
-if err != nil {
+	token, err := ghApp.GetAccessToken()
+	if err != nil {
 		panic(err)
+	}
 }
 ```
 
