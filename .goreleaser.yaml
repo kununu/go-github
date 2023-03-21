@@ -9,6 +9,7 @@ builds:
     - arm64
     goos:
       - linux
+    main: ./cmd/main.go
 archives:
   - id: uncompressed
     format: binary
