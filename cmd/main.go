@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kununu/go-github/v1"
+	"github.com/kununu/go-github"
 )
 
 var (
