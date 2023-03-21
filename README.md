@@ -17,7 +17,7 @@ To generate a new GitHub App access token that can be used to authenticate.
 ```go
 package main
 
-import "github.com/kununu/go-github/v1"
+import "github.com/kununu/go-github"
 
 func main() {
 // Create a new GithubApp with JWT authentication
