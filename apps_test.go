@@ -1,17 +1,10 @@
 package github
 
 import (
-	"context"
-	"fmt"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
-func TestBuildJWT(t *testing.T) {
-	// Test case: valid arguments.
-	appId := 298674
-	privateKey := []byte(`
+var testPrivateKey = []byte(`
 -----BEGIN RSA PRIVATE KEY-----
 MIIEpgIBAAKCAQEA8XMXJdGRAKZm5nNN7Y5Hsd68otnxr5apyiSQrja9Jkjq0exL
 LohCS1EIk0/+pB/vQxz1kR0E7HjhJTrChZQmLGgb8nSE987UEinRljTF0yjZSnjE
@@ -41,43 +34,55 @@ NAYPACY/P+sO1+RN3UkezoYdbgnperNKSMreQtrxL/0wkDaKdmUWm0ty
 -----END RSA PRIVATE KEY-----
 `)
 
-	token, err := buildJWTToken(appId, privateKey)
+func TestNewGitHubApp(t *testing.T) {
 
+	// Test Case 1: Empty configuration
+	cfg := &GitHubAppConfig{}
+	_, err := NewGitHubApp(cfg)
+	if err == nil {
+		t.Errorf("Expected error for empty configuration")
+	}
+
+	// Test Case 2: Missing Application ID
+	cfg = &GitHubAppConfig{
+		InstallationID: "123",
+	}
+	_, err = NewGitHubApp(cfg)
+	if err == nil {
+		t.Errorf("Expected error for missing Application ID")
+	}
+
+	// Test Case 3: Missing Installation ID
+	cfg = &GitHubAppConfig{
+		ApplicationID: "298674",
+	}
+	_, err = NewGitHubApp(cfg)
+	if err == nil {
+		t.Errorf("Expected error for missing Installation ID")
+	}
+
+	// Test Case 4: Missing Private Key
+	cfg = &GitHubAppConfig{
+		ApplicationID:  "298674",
+		InstallationID: "123",
+	}
+	_, err = NewGitHubApp(cfg)
+	if err == nil {
+		t.Errorf("Expected error for missing Private Key")
+	}
+
+	// Test Case 5: Valid configuration
+	cfg = &GitHubAppConfig{
+		ApplicationID:  "298674",
+		InstallationID: "123",
+		LocalPath:      "/path/to/repo",
+		PrivateKey:     testPrivateKey,
+	}
+	ghApp, err := NewGitHubApp(cfg)
 	if err != nil {
-		t.Errorf("unexpected error: %v", err)
+		t.Errorf("Unexpected error: %v", err)
 	}
-
-	if len(token) == 0 {
-		t.Errorf("token is empty")
-	}
-}
-
-func TestGetAccessToken(t *testing.T) {
-	// Test case: valid arguments and response.
-	auth := "dummy_auth_token"
-	instId := 123
-	expectedToken := "dummy_access_token"
-
-	// Create a mock HTTP server.
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, `{"token": "%s"}`, expectedToken)
-	}))
-	defer server.Close()
-
-	// Set test URL
-	githubAPIURL = server.URL
-
-	// Set up a context with a dummy auth token.
-	ctx := context.WithValue(context.Background(), "auth_token", auth)
-
-	// Make the request to the mock server.
-	token, err := GetAccessToken(ctx, instId)
-	if err != nil {
-		t.Fatalf("expected no error, but got %v", err)
-	}
-
-	// Verify the access token.
-	if token != expectedToken {
-		t.Errorf("expected access token %q, but got %q", expectedToken, token)
+	if ghApp.Config.ApplicationID != "298674" || ghApp.Config.InstallationID != "123" || ghApp.Config.LocalPath != "/path/to/repo" {
+		t.Errorf("Incorrect configuration values: %v", ghApp.Config)
 	}
 }
