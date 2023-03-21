@@ -36,10 +36,27 @@ func NewGitHubApp(cfg *GitHubAppConfig) (*GitHubApp, error) {
 	ghApp := &GitHubApp{
 		Config: cfg,
 	}
-	err := ghApp.buildJWTToken()
+
+	err := ghApp.authenticate()
 	if err != nil {
 		return nil, err
 	}
 
 	return ghApp, nil
+}
+
+func (ghApp *GitHubApp) authenticate() error {
+
+	err := ghApp.buildJWTToken()
+	if err != nil {
+		return err
+	}
+
+	tkn, err := ghApp.GetAccessToken()
+	if err != nil {
+		return err
+	}
+	ghApp.Auth.Token = tkn
+
+	return nil
 }

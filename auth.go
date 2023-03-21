@@ -11,10 +11,8 @@ import (
 )
 
 type Auth struct {
-	JWTToken  string
-	Token     string
-	IssuedAt  time.Time
-	ExpiresAt time.Time
+	JWTToken string
+	Token    string
 }
 
 // Builds the JWT token from the provided appId and key

@@ -12,7 +12,7 @@ func (ghApp *GitHubApp) Clone() error {
 		URL: ghApp.Config.RepoURL,
 		Auth: &http.BasicAuth{
 			Username: "github",
-			Password: "ghs_8AnRJrwdvhL7roQPi7NrMYbOX2GNiW2FhUpm",
+			Password: ghApp.Auth.Token,
 		},
 	})
 	if err != nil {
