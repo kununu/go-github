@@ -22,8 +22,11 @@ import "github.com/kununu/go-github"
 func main() {
 	// Create a new GithubApp with JWT authentication
 	ghApp, err := github.NewGitHubApp(&github.GitHubAppConfig{
+		// GitHub APP ID to use to authenticate
 		ApplicationID:  appId,
+		// GitHub Installation ID for the APP
 		InstallationID: instId,
+		// GitHub APP generated private key
 		PrivateKey:     keyBytes,
 	})
 
@@ -34,10 +37,14 @@ func main() {
 }
 ```
 
-## Installation
+## Provided binary
 
-There is also a binary available that just outputs a GitHub token and can be
-used in any tool by just setting the `GIT_ASKPASS` env variable.
+We also provide a binary that outputs a GitHub token and can be in any a linux command line by
+setting the `GIT_ASKPASS` env variable to the binary.
+
+The binary can be configured to be used byt setting the environment variables 
+`GITHUB_APP_ID` `GITHUB_INSTALLATION_ID` and `GITHUB_KEY_PATH` or by passing the values using flags. 
+Use the `-h` flag for more information on the available flags.
 
 ```bash
 GIT_ASKPASS=<path_to_binary>
