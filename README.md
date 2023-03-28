@@ -1,6 +1,6 @@
 # go-github
 
-With the migration of GitHub to New Work's Single Sign-On (SSO), the GitHub user that was
+With the migration of our GitHub organisation to Single Sign-On (SSO), the GitHub user that was
 being used in our tools (like Jenkins) was not beeing added as a new LDAP user.
 With this in mind, we had the need to have a way of authenticating using
 [GitHub Apps](https://docs.github.com/en/apps/creating-github-apps/creating-github-apps/about-apps).
