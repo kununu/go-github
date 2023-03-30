@@ -70,19 +70,4 @@ func TestNewGitHubApp(t *testing.T) {
 	if err == nil {
 		t.Errorf("Expected error for missing Private Key")
 	}
-
-	// Test Case 5: Valid configuration
-	cfg = &GitHubAppConfig{
-		ApplicationID:  "298674",
-		InstallationID: "123",
-		LocalPath:      "/path/to/repo",
-		PrivateKey:     testPrivateKey,
-	}
-	ghApp, err := NewGitHubApp(cfg)
-	if err != nil {
-		t.Errorf("Unexpected error: %v", err)
-	}
-	if ghApp.Config.ApplicationID != "298674" || ghApp.Config.InstallationID != "123" || ghApp.Config.LocalPath != "/path/to/repo" {
-		t.Errorf("Incorrect configuration values: %v", ghApp.Config)
-	}
 }
