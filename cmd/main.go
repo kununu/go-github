@@ -48,16 +48,22 @@ func main() {
 		os.Exit(0)
 	}
 
+	// Create a new GitHubApp
 	ghApp, err := github.NewGitHubApp(&github.GitHubAppConfig{
 		ApplicationID:  appId,
 		InstallationID: instId,
 		PrivateKey:     keyBytes,
 	})
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(0)
+	}
 
 	// Get GitHub auth token for the specified installation
 	token, err := ghApp.GetAccessToken()
 	if err != nil {
-		panic(err)
+		fmt.Println(err.Error())
+		os.Exit(0)
 	}
 
 	// Printout GitHub Token
