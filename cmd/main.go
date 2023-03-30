@@ -27,7 +27,7 @@ func main() {
 		appId = os.Getenv("GITHUB_APP_ID")
 	}
 	if instId == "" {
-		instId = os.Getenv("GITHUB_INSTALLATION_ID")
+		instId = os.Getenv("GITHUB_INST_ID")
 	}
 	if key == "" {
 		key = os.Getenv("GITHUB_KEY_PATH")
@@ -37,7 +37,7 @@ func main() {
 	if appId == "" || key == "" || instId == "" {
 		fmt.Println("You need to define the App ID and the path to the key file")
 		fmt.Println("by passing the values the -a, -i and -k options or")
-		fmt.Println("by setting GITHUB_APP_ID, GITHUB_INSTALLATION_ID and GITHUB_KEY_PATH environment variables.")
+		fmt.Println("by setting GITHUB_APP_ID, GITHUB_INST_ID and GITHUB_KEY_PATH environment variables.")
 		os.Exit(0)
 	}
 
@@ -48,16 +48,22 @@ func main() {
 		os.Exit(0)
 	}
 
+	// Create a new GitHubApp
 	ghApp, err := github.NewGitHubApp(&github.GitHubAppConfig{
 		ApplicationID:  appId,
 		InstallationID: instId,
 		PrivateKey:     keyBytes,
 	})
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(0)
+	}
 
 	// Get GitHub auth token for the specified installation
 	token, err := ghApp.GetAccessToken()
 	if err != nil {
-		panic(err)
+		fmt.Println(err.Error())
+		os.Exit(0)
 	}
 
 	// Printout GitHub Token

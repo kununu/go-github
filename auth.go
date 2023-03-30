@@ -2,6 +2,7 @@ package github
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -62,12 +63,17 @@ func (ghApp *GitHubApp) GetAccessToken() (string, error) {
 		return "", err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return "", errors.New("couldn't get the token")
+	}
 
 	// Read the the response from the server
 	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
 
 	// Parse the response to the struct
-
 	t := TokenResponse{}
 	json.Unmarshal(body, &t)
 
