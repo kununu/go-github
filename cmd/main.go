@@ -27,7 +27,7 @@ func main() {
 		appId = os.Getenv("GITHUB_APP_ID")
 	}
 	if instId == "" {
-		instId = os.Getenv("GITHUB_INSTALLATION_ID")
+		instId = os.Getenv("GITHUB_INST_ID")
 	}
 	if key == "" {
 		key = os.Getenv("GITHUB_KEY_PATH")
@@ -37,7 +37,7 @@ func main() {
 	if appId == "" || key == "" || instId == "" {
 		fmt.Println("You need to define the App ID and the path to the key file")
 		fmt.Println("by passing the values the -a, -i and -k options or")
-		fmt.Println("by setting GITHUB_APP_ID, GITHUB_INSTALLATION_ID and GITHUB_KEY_PATH environment variables.")
+		fmt.Println("by setting GITHUB_APP_ID, GITHUB_INST_ID and GITHUB_KEY_PATH environment variables.")
 		os.Exit(0)
 	}
 
