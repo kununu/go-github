@@ -63,7 +63,7 @@ func (ghApp *GitHubApp) GetAccessToken() (string, error) {
 		return "", err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
+	if resp.StatusCode >= 400 {
 		return "", errors.New("couldn't get the token")
 	}
 
