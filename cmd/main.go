@@ -53,8 +53,6 @@ func main() {
 		}
 	}
 
-	fmt.Println(key)
-	os.Exit(0)
 	// Verify if the necessary information is set
 	if appId == "" || key == "" || instId == "" {
 		fmt.Println("You need to define the App ID and the path to the key file")
