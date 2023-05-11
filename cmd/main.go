@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"os"
@@ -31,8 +32,29 @@ func main() {
 	}
 	if key == "" {
 		key = os.Getenv("GITHUB_KEY_PATH")
+		if key == "" {
+			// Read the key from STDIN
+			stat, err := os.Stdin.Stat()
+			if err != nil {
+				fmt.Printf("error in stdin: %s", err)
+				os.Exit(1)
+			}
+			if (stat.Mode() & os.ModeNamedPipe) == 0 {
+				fmt.Printf("you need to pass the private key either with `-k` parameter or by setting GITHUB_KEY_PATH or even passing through STDIN\n")
+				os.Exit(1)
+			}
+			scanner := bufio.NewScanner(os.Stdin)
+			for scanner.Scan() {
+				key = scanner.Text()
+			}
+			if err := scanner.Err(); err != nil {
+				fmt.Fprintln(os.Stderr, "reading standard input:", err)
+			}
+		}
 	}
 
+	fmt.Println(key)
+	os.Exit(0)
 	// Verify if the necessary information is set
 	if appId == "" || key == "" || instId == "" {
 		fmt.Println("You need to define the App ID and the path to the key file")
