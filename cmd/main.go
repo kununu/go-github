@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/kununu/go-github"
 )
@@ -22,6 +24,7 @@ func init() {
 }
 
 func main() {
+	keyBytes := []byte{}
 	// Get the values from the environment variables if they are set with parameters
 	if appId == "" {
 		appId = os.Getenv("GITHUB_APP_ID")
@@ -31,10 +34,36 @@ func main() {
 	}
 	if key == "" {
 		key = os.Getenv("GITHUB_KEY_PATH")
+		if key == "" {
+			// Read the key from STDIN
+			stat, err := os.Stdin.Stat()
+			if err != nil {
+				fmt.Printf("error in stdin: %s", err)
+				os.Exit(1)
+			}
+			if (stat.Mode() & os.ModeNamedPipe) == 0 {
+				fmt.Printf("you need to pass the private key either with `-k` parameter or by setting GITHUB_KEY_PATH or even passing through STDIN\n")
+				os.Exit(1)
+			}
+			var lines []string
+			reader := bufio.NewReader(os.Stdin)
+			for {
+				// read line from stdin using newline as separator
+				line, _ := reader.ReadString('\n')
+				// if line is empty, break the loop
+				if len(strings.TrimSpace(line)) == 0 {
+					break
+				}
+				//append the line to a slice
+				lines = append(lines, line)
+				keyBytes = append(keyBytes, []byte(line)...)
+			}
+			key = "stdin"
+		}
 	}
 
 	// Verify if the necessary information is set
-	if appId == "" || key == "" || instId == "" {
+	if appId == "" || instId == "" {
 		fmt.Println("You need to define the App ID and the path to the key file")
 		fmt.Println("by passing the values the -a, -i and -k options or")
 		fmt.Println("by setting GITHUB_APP_ID, GITHUB_INST_ID and GITHUB_KEY_PATH environment variables.")
@@ -42,10 +71,13 @@ func main() {
 	}
 
 	// Read the key from the file
-	keyBytes, err := os.ReadFile(key)
-	if err != nil {
-		fmt.Println("error reading the key file")
-		os.Exit(0)
+	if key != "stdin" {
+		var err error
+		keyBytes, err = os.ReadFile(key)
+		if err != nil {
+			fmt.Println("error reading the key file")
+			os.Exit(1)
+		}
 	}
 
 	// Create a new GitHubApp
@@ -56,14 +88,14 @@ func main() {
 	})
 	if err != nil {
 		fmt.Println(err.Error())
-		os.Exit(0)
+		os.Exit(1)
 	}
 
 	// Get GitHub auth token for the specified installation
 	token, err := ghApp.GetAccessToken()
 	if err != nil {
 		fmt.Println(err.Error())
-		os.Exit(0)
+		os.Exit(1)
 	}
 
 	// Printout GitHub Token
