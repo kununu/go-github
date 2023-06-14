@@ -99,6 +99,6 @@ func main() {
 	}
 
 	// Printout GitHub Token
-	fmt.Println(token)
+	fmt.Fprintf(os.Stdout, token)
 
 }
