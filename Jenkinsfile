@@ -1,1 +1,3 @@
 @Library("kununu") _;
+
+builderPipeline()
