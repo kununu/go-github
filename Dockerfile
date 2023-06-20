@@ -10,10 +10,7 @@ WORKDIR /go/src
 RUN go build -o /go/bin/ghapps cmd/main.go
 
 # Final image
-FROM scratch
-
-# Copy SSL certs from buider. This is needed for the app to run
-COPY --from=builder /etc/ssl /etc/ssl
+FROM alpine
 
 # Copy the binary from builder
 COPY --from=builder /go/bin/ghapps /ghapps
