@@ -1,9 +1,18 @@
 package github
 
 import (
+	"time"
+
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 )
+
+// User information
+type UserInfo struct {
+	Name  string
+	Email string
+}
 
 // Clones the repository
 func (ghApp *GitHubApp) Clone() error {
@@ -41,8 +50,14 @@ func (ghApp *GitHubApp) Add(path string) {
 }
 
 // Commits the changes
-func (ghApp *GitHubApp) Commit(msg string) error {
-	_, err := ghApp.worktree.Commit(msg, &git.CommitOptions{})
+func (ghApp *GitHubApp) Commit(msg string, user UserInfo) error {
+	_, err := ghApp.worktree.Commit(msg, &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  user.Name,
+			Email: user.Email,
+			When:  time.Now(),
+		},
+	})
 	if err != nil {
 		return err
 	}
