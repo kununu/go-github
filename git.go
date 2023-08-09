@@ -68,6 +68,10 @@ func (ghApp *GitHubApp) Commit(msg string, user UserInfo) error {
 func (ghApp *GitHubApp) Push() error {
 	err := ghApp.gitRepo.Push(&git.PushOptions{
 		RemoteName: "origin",
+		Auth: &http.BasicAuth{
+			Username: "github",
+			Password: ghApp.Auth.Token,
+		},
 	})
 	if err != nil {
 		return err
