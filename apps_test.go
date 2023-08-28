@@ -32,7 +32,7 @@ Uqt+kzgPAoGBAOeI2EoJSOtpHlJgXT5v8qvqCFdu/oiiS/i9d25CkL0AIlT0YJZu
 VAeKVKieSln/vQZfuklfdcmREwcn7LiMmU7KeLm5ehsfUAtjT/9c4KOj6+/unrQZ
 NAYPACY/P+sO1+RN3UkezoYdbgnperNKSMreQtrxL/0wkDaKdmUWm0ty
 -----END RSA PRIVATE KEY-----
-`)
+	`)
 
 func TestNewGitHubApp(t *testing.T) {
 
@@ -45,7 +45,7 @@ func TestNewGitHubApp(t *testing.T) {
 
 	// Test Case 2: Missing Application ID
 	cfg = &GitHubAppConfig{
-		InstallationID: "123",
+		InstallationID: 123,
 	}
 	_, err = NewGitHubApp(cfg)
 	if err == nil {
@@ -54,7 +54,7 @@ func TestNewGitHubApp(t *testing.T) {
 
 	// Test Case 3: Missing Installation ID
 	cfg = &GitHubAppConfig{
-		ApplicationID: "298674",
+		ApplicationID: 298674,
 	}
 	_, err = NewGitHubApp(cfg)
 	if err == nil {
@@ -63,8 +63,8 @@ func TestNewGitHubApp(t *testing.T) {
 
 	// Test Case 4: Missing Private Key
 	cfg = &GitHubAppConfig{
-		ApplicationID:  "298674",
-		InstallationID: "123",
+		ApplicationID:  298674,
+		InstallationID: 123,
 	}
 	_, err = NewGitHubApp(cfg)
 	if err == nil {

@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -25,8 +26,14 @@ func (ghApp *GitHubApp) buildJWTToken() error {
 	claims["exp"] = time.Now().Add(10 * time.Minute).Unix()
 	claims["iss"] = ghApp.Config.ApplicationID
 
+	// Read file
+	keyData, err := os.ReadFile(ghApp.Config.PrivateKey)
+	if err != nil {
+		return err
+	}
+
 	// Parse RSA private key
-	key, err := jwt.ParseRSAPrivateKeyFromPEM(ghApp.Config.PrivateKey)
+	key, err := jwt.ParseRSAPrivateKeyFromPEM(keyData)
 	if err != nil {
 		return err
 	}
@@ -49,7 +56,7 @@ type TokenResponse struct {
 // Gets the access token to authenticate with github
 func (ghApp *GitHubApp) GetAccessToken() (string, error) {
 	// Parse url
-	url := fmt.Sprintf("%s/app/installations/%s/access_tokens", githubAPIURL, ghApp.Config.InstallationID)
+	url := fmt.Sprintf("%s/app/installations/%d/access_tokens", githubAPIURL, ghApp.Config.InstallationID)
 
 	// Create the request to github's api
 	req, _ := http.NewRequest("POST", url, nil)
@@ -68,7 +75,7 @@ func (ghApp *GitHubApp) GetAccessToken() (string, error) {
 	}
 
 	// Read the the response from the server
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}
