@@ -28,7 +28,8 @@ type GitHubAppConfig struct {
 	ApplicationID  int64
 	InstallationID int64
 	LocalPath      string
-	PrivateKey     string
+	PrivateKey     []byte
+	PrivateKeyFile string
 }
 
 var githubAPIURL string = "https://api.github.com"
@@ -70,12 +71,18 @@ func NewGitHubApp(cfg *GitHubAppConfig) (*GitHubApp, error) {
 		cfg.LocalPath = "./"
 	}
 
+	var itr *ghinstallation.Transport
+	var err error
 	// get new key for github
-	itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, cfg.ApplicationID, cfg.InstallationID, cfg.PrivateKey)
+	if cfg.PrivateKeyFile != "" {
+		itr, err = ghinstallation.NewKeyFromFile(http.DefaultTransport, cfg.ApplicationID, cfg.InstallationID, cfg.PrivateKeyFile)
+	} else {
+		itr, err = ghinstallation.New(http.DefaultTransport, cfg.ApplicationID, cfg.InstallationID, cfg.PrivateKey)
+	}
+
 	if err != nil {
 		return nil, err
 	}
-
 	repoName, err := extractRepoName(cfg.RepoURL)
 	if err != nil {
 		return nil, err
