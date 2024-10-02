@@ -1,6 +1,6 @@
 module github.com/kununu/go-github
 
-go 1.21
+go 1.23
 
 require (
 	github.com/bradleyfalzon/ghinstallation/v2 v2.6.0
