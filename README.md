@@ -26,7 +26,9 @@ func main() {
 		ApplicationID:  appId,
 		// GitHub Installation ID for the APP
 		InstallationID: instId,
-		// GitHub APP generated private key
+		// GitHub APP generated private key path to file
+		PrivateKeyFile: string,
+		// GitHub APP generated private key value
 		PrivateKey:     keyBytes,
 	})
 
@@ -43,8 +45,10 @@ We also provide a binary that outputs a GitHub token and can be in any a linux c
 setting the `GIT_ASKPASS` env variable to the binary.
 
 The binary can be configured to be used byt setting the environment variables 
-`GITHUB_APP_ID` `GITHUB_INST_ID` and `GITHUB_KEY_PATH` or by passing the values using flags. 
+`GITHUB_APP_ID` `GITHUB_INST_ID` and `GITHUB_KEY_PATH` or `GITHUB_KEY_VALUE` or by passing the values using flags. 
 Use the `-h` flag for more information on the available flags.
+
+**NOTE:** If both GITHUB_KEY_PATH and GITHUB_KEY_VALUE are passed, only the first one is used.
 
 ```bash
 GIT_ASKPASS=<path_to_binary>

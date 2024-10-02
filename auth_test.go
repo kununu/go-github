@@ -12,8 +12,8 @@ func TestBuildJWTToken(t *testing.T) {
 
 	// Test Case 1: Invalid private key
 	cfg := &GitHubAppConfig{
-		ApplicationID: 123,
-		PrivateKey:    "invalid",
+		ApplicationID:  123,
+		PrivateKeyFile: "invalid",
 	}
 	ghApp := &GitHubApp{
 		Config: cfg,
@@ -25,8 +25,8 @@ func TestBuildJWTToken(t *testing.T) {
 
 	// Test Case 2: Valid private key
 	cfg = &GitHubAppConfig{
-		ApplicationID: 298674,
-		PrivateKey:    tmpKeyFile,
+		ApplicationID:  298674,
+		PrivateKeyFile: tmpKeyFile,
 	}
 	ghApp = &GitHubApp{
 		Config: cfg,

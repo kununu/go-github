@@ -10,13 +10,15 @@ import (
 )
 
 var (
-	appId  int64
-	instId int64
-	key    string
+	appId    int64
+	instId   int64
+	key      string
+	keyValue string
 )
 
 func init() {
-	flag.StringVar(&key, "k", "", "Path to key file for authentication")
+	flag.StringVar(&key, "f", "", "Path to key file for authentication")
+	flag.StringVar(&keyValue, "k", "", "Key value for authentication")
 	flag.Int64Var(&appId, "a", 0, "App ID to use for authentication")
 	flag.Int64Var(&instId, "i", 0, "Installation ID that identifies the APP installation ID on GitHub")
 	flag.Parse()
@@ -34,18 +36,13 @@ func main() {
 	}
 	if key == "" {
 		key = os.Getenv("GITHUB_KEY_PATH")
-		if key == "" {
+		if keyValue == "" {
+			keyValue = os.Getenv("GITHUB_KEY_VALUE")
 			// Read the key from STDIN
-			stat, err := os.Stdin.Stat()
-			if err != nil {
-				fmt.Printf("error in stdin: %s", err)
+			if keyValue == "" {
+				fmt.Printf("you need to pass the private key either with `-k` parameter or by setting GITHUB_KEY_PATH OR GITHUB_KEY_VALUE\n")
 				os.Exit(1)
 			}
-			if (stat.Mode() & os.ModeNamedPipe) == 0 {
-				fmt.Printf("you need to pass the private key either with `-k` parameter or by setting GITHUB_KEY_PATH or even passing through STDIN\n")
-				os.Exit(1)
-			}
-			key = "stdin"
 		}
 	}
 
@@ -61,7 +58,8 @@ func main() {
 	ghApp, err := github.NewGitHubApp(&github.GitHubAppConfig{
 		ApplicationID:  appId,
 		InstallationID: instId,
-		PrivateKey:     key,
+		PrivateKey:     []byte(keyValue),
+		PrivateKeyFile: key,
 	})
 	if err != nil {
 		fmt.Println(err.Error())

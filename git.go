@@ -102,7 +102,9 @@ func (ghApp *GitHubApp) NewBranch(name string, checkout bool) error {
 }
 
 // Create new pull request
-func (ghApp *GitHubApp) NewPullRequest(source string, target string, title string, body string) error {
+func (ghApp *GitHubApp) NewPullRequest(source, target, title, body string) error {
+	ctx := context.Background()
+
 	// Create PR
 	newPR := &github.NewPullRequest{
 		Title:               github.String(title),
@@ -111,12 +113,50 @@ func (ghApp *GitHubApp) NewPullRequest(source string, target string, title strin
 		Body:                github.String(body),
 		MaintainerCanModify: github.Bool(true),
 	}
-	ctx := context.Background()
 
-	_, _, err := ghApp.githubClient.PullRequests.Create(ctx, "kununu", ghApp.Config.repoName, newPR)
+	pr, _, err := ghApp.githubClient.PullRequests.Create(ctx, "kununu", ghApp.Config.repoName, newPR)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	// Wait for checks to pass
+	err = waitForChecksToPass(ctx, ghApp.githubClient, "kununu", ghApp.Config.repoName, pr.GetNumber())
+	if err != nil {
+		return err
+	}
+
+	// Merge PR
+	return mergePullRequest(ctx, ghApp.githubClient, "kununu", ghApp.Config.repoName, pr.GetNumber())
+}
+
+func waitForChecksToPass(ctx context.Context, client *github.Client, owner, repo string, number int) error {
+	// Polling interval and timeout can be adjusted based on your requirements
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+
+	timeout := time.After(10 * time.Minute)
+
+	for {
+		select {
+		case <-timeout:
+			return fmt.Errorf("timeout while waiting for checks to pass")
+		case <-ticker.C:
+			combined, _, err := client.Repositories.GetCombinedStatus(ctx, owner, repo, fmt.Sprintf("pull/%d/head", number), nil)
+			if err != nil {
+				return err
+			}
+
+			if combined.GetState() == "success" {
+				return nil
+			}
+		}
+	}
+}
+
+func mergePullRequest(ctx context.Context, client *github.Client, owner, repo string, number int) error {
+	opts := &github.PullRequestOptions{
+		MergeMethod: "squash", // or "merge" or "rebase"
+	}
+	_, _, err := client.PullRequests.Merge(ctx, owner, repo, number, "Automated merge by bot", opts)
+	return err
 }
