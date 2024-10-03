@@ -20,7 +20,7 @@ jobs:
         go-version-file: "go.mod"
 
     - name: Install dependencies
-      run: go mod install
+      run: go mod download
       
     - name: Run tests
       run: go test -v ./...
