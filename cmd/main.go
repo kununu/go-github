@@ -17,8 +17,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&key, "f", "", "Path to key file for authentication")
-	flag.StringVar(&keyValue, "k", "", "Key value for authentication")
+	flag.StringVar(&key, "k", "", "Path to key file for authentication")
 	flag.Int64Var(&appId, "a", 0, "App ID to use for authentication")
 	flag.Int64Var(&instId, "i", 0, "Installation ID that identifies the APP installation ID on GitHub")
 	flag.Parse()
@@ -34,15 +33,12 @@ func main() {
 		instIdInt, _ := strconv.ParseInt(os.Getenv("GITHUB_INST_ID"), 10, 64)
 		instId = instIdInt
 	}
-	if key == "" {
+	keyValue = os.Getenv("GITHUB_KEY_VALUE")
+	if key == "" && keyValue == "" {
 		key = os.Getenv("GITHUB_KEY_PATH")
-		if keyValue == "" {
-			keyValue = os.Getenv("GITHUB_KEY_VALUE")
-			// Read the key from STDIN
-			if keyValue == "" {
-				fmt.Printf("you need to pass the private key either with `-k` parameter or by setting GITHUB_KEY_PATH OR GITHUB_KEY_VALUE\n")
-				os.Exit(1)
-			}
+		if key == "" {
+			fmt.Printf("you need to pass the private key either with `-k` parameter or by setting GITHUB_KEY_PATH\n")
+			os.Exit(1)
 		}
 	}
 
