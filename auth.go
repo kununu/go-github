@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -26,20 +25,8 @@ func (ghApp *GitHubApp) buildJWTToken() error {
 	claims["exp"] = time.Now().Add(10 * time.Minute).Unix()
 	claims["iss"] = ghApp.Config.ApplicationID
 
-	var keyData []byte
-	var err error
-	// Read file
-	if ghApp.Config.PrivateKeyFile != "" {
-		keyData, err = os.ReadFile(ghApp.Config.PrivateKeyFile)
-	} else {
-		keyData = ghApp.Config.PrivateKey
-	}
-	if err != nil {
-		return err
-	}
-
 	// Parse RSA private key
-	key, err := jwt.ParseRSAPrivateKeyFromPEM(keyData)
+	key, err := jwt.ParseRSAPrivateKeyFromPEM(ghApp.Config.PrivateKey)
 	if err != nil {
 		return err
 	}
