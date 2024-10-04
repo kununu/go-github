@@ -18,4 +18,4 @@ jobs:
 
   docker:
     needs: [test]
-    uses: ./.github/workfloes/docker.yaml
+    uses: ./.github/workflows/docker.yaml
