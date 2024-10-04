@@ -15,3 +15,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: [test]
     uses: ./.github/workflows/release.yaml
+
+  docker:
+    needs: [test]
+    uses: ./.github/workfloes/docker.yaml
