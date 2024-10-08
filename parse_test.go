@@ -20,16 +20,27 @@ func prepare() {
 func cleanup() {
 	os.Remove(tmpKeyFile)
 	os.Args = []string{}
-	os.Setenv("GITHUB_APP_ID", "")
-	os.Setenv("GITHUB_INST_ID", "")
-	os.Setenv("GITHUB_KEY_PATH", "")
-	os.Setenv("GITHUB_KEY_VALUE", "")
+	os.Unsetenv("GITHUB_APP_ID")
+	os.Unsetenv("GITHUB_INST_ID")
+	os.Unsetenv("GITHUB_KEY_PATH")
+	os.Unsetenv("GITHUB_KEY_VALUE")
 }
 
 func setArgs(args []string) {
 	os.Args = args
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
+}
+
+func TestNoParametersPassed(t *testing.T) {
+	prepare()
+	defer cleanup()
+
+	_, err := ParseParameters()
+
+	if err == nil {
+		t.Errorf("expect: error, got: nil")
+	}
 }
 
 func TestPassedKeyPath(t *testing.T) {

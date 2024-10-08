@@ -46,7 +46,7 @@ func ParseParameters() (*GitHubAppConfig, error) {
 		path = os.Getenv("GITHUB_KEY_PATH")
 	}
 
-	// A dash (-) was passed to path as a standard Nix option to read from STDIN
+	// A dash (-) was passed to path as a standard unix option to read from STDIN
 	if path == "-" {
 		stdin, err := io.ReadAll(os.Stdin)
 		if err != nil {
