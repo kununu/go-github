@@ -14,37 +14,36 @@ var (
 func prepare() {
 	instId = 12345
 	appId = 9876543
-	os.WriteFile(tmpKeyFile, testPrivateKey, 0644)
-}
-
-func cleanup() {
-	os.Remove(tmpKeyFile)
-	os.Args = []string{}
-	os.Unsetenv("GITHUB_APP_ID")
-	os.Unsetenv("GITHUB_INST_ID")
-	os.Unsetenv("GITHUB_KEY_PATH")
-	os.Unsetenv("GITHUB_KEY_VALUE")
 }
 
 func setArgs(args []string) {
 	os.Args = args
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-
 }
 
-func runTestWithSetupAndCleanup(t *testing.T, testFunc func(t *testing.T)) {
+func runTestWithSetup(t *testing.T, testFunc func(t *testing.T)) {
 	// Setup the test
 	prepare()
 
-	// Set the cleanup function
-	t.Cleanup(cleanup)
-
 	// Run the actual test
 	testFunc(t)
+
+}
+
+func runTestWithSetupAndFile(t *testing.T, testFunc func(t *testing.T)) {
+	os.WriteFile(tmpKeyFile, testPrivateKey, 0644)
+
+	// Set the cleanup function
+	t.Cleanup(func() {
+		os.Remove(tmpKeyFile)
+	})
+
+	// Run the setup
+	runTestWithSetup(t, testFunc)
 }
 
 func TestNoParametersPassed(t *testing.T) {
-	runTestWithSetupAndCleanup(t, func(t *testing.T) {
+	runTestWithSetup(t, func(t *testing.T) {
 		_, err := ParseParameters()
 
 		if err == nil {
@@ -54,7 +53,7 @@ func TestNoParametersPassed(t *testing.T) {
 }
 
 func TestPassedKeyPath(t *testing.T) {
-	runTestWithSetupAndCleanup(t, func(t *testing.T) {
+	runTestWithSetupAndFile(t, func(t *testing.T) {
 		setArgs([]string{"binary", "-i", strconv.FormatInt(instId, 10), "-a", strconv.FormatInt(appId, 10), "-k", tmpKeyFile})
 		cfg, err := ParseParameters()
 		if err != nil {
@@ -78,7 +77,7 @@ func TestPassedKeyPath(t *testing.T) {
 }
 
 func TestNoAppIDParameter(t *testing.T) {
-	runTestWithSetupAndCleanup(t, func(t *testing.T) {
+	runTestWithSetup(t, func(t *testing.T) {
 		setArgs([]string{"binary", "-i", strconv.FormatInt(instId, 10), "-k", tmpKeyFile})
 		_, err := ParseParameters()
 		if err != nil && err.Error() != noAppIdError {
@@ -88,7 +87,7 @@ func TestNoAppIDParameter(t *testing.T) {
 }
 
 func TestNoInstIDParameter(t *testing.T) {
-	runTestWithSetupAndCleanup(t, func(t *testing.T) {
+	runTestWithSetup(t, func(t *testing.T) {
 		setArgs([]string{"binary", "-a", strconv.FormatInt(appId, 10), "-k", tmpKeyFile})
 		_, err := ParseParameters()
 		if err != nil && err.Error() != noInstIdError {
@@ -98,7 +97,7 @@ func TestNoInstIDParameter(t *testing.T) {
 }
 
 func TestNoKeyPathParameter(t *testing.T) {
-	runTestWithSetupAndCleanup(t, func(t *testing.T) {
+	runTestWithSetupAndFile(t, func(t *testing.T) {
 		setArgs([]string{"binary", "-a", strconv.FormatInt(appId, 10), "-i", strconv.FormatInt(instId, 10)})
 		_, err := ParseParameters()
 		if err != nil && err.Error() != noKeyError {
@@ -108,11 +107,11 @@ func TestNoKeyPathParameter(t *testing.T) {
 }
 
 func TestNoAppIDEnvVar(t *testing.T) {
-	runTestWithSetupAndCleanup(t, func(t *testing.T) {
+	runTestWithSetup(t, func(t *testing.T) {
 		setArgs([]string{"binary"})
-		os.Setenv("GITHUB_INST_ID", strconv.FormatInt(instId, 10))
-		os.Setenv("GITHUB_KEY_PATH", string(tmpKeyFile))
-		os.Setenv("GITHUB_KEY_VALUE", string(testPrivateKey))
+		t.Setenv("GITHUB_INST_ID", strconv.FormatInt(instId, 10))
+		t.Setenv("GITHUB_KEY_PATH", string(tmpKeyFile))
+		t.Setenv("GITHUB_KEY_VALUE", string(testPrivateKey))
 		_, err := ParseParameters()
 		if err != nil && err.Error() != noAppIdError {
 			t.Errorf("expect: %q, got: %q", noAppIdError, err.Error())
@@ -121,11 +120,11 @@ func TestNoAppIDEnvVar(t *testing.T) {
 }
 
 func TestNoInstIDEnvVar(t *testing.T) {
-	runTestWithSetupAndCleanup(t, func(t *testing.T) {
+	runTestWithSetup(t, func(t *testing.T) {
 		setArgs([]string{"binary"})
-		os.Setenv("GITHUB_APP_ID", strconv.FormatInt(appId, 10))
-		os.Setenv("GITHUB_KEY_PATH", string(tmpKeyFile))
-		os.Setenv("GITHUB_KEY_VALUE", string(testPrivateKey))
+		t.Setenv("GITHUB_APP_ID", strconv.FormatInt(appId, 10))
+		t.Setenv("GITHUB_KEY_PATH", string(tmpKeyFile))
+		t.Setenv("GITHUB_KEY_VALUE", string(testPrivateKey))
 		_, err := ParseParameters()
 		if err != nil && err.Error() != noInstIdError {
 			t.Errorf("expect: %q, got: %q", noInstIdError, err.Error())
@@ -134,10 +133,10 @@ func TestNoInstIDEnvVar(t *testing.T) {
 }
 
 func TestNoKeyEnvVar(t *testing.T) {
-	runTestWithSetupAndCleanup(t, func(t *testing.T) {
+	runTestWithSetup(t, func(t *testing.T) {
 		setArgs([]string{"binary"})
-		os.Setenv("GITHUB_APP_ID", strconv.FormatInt(appId, 10))
-		os.Setenv("GITHUB_INST_ID", strconv.FormatInt(instId, 10))
+		t.Setenv("GITHUB_APP_ID", strconv.FormatInt(appId, 10))
+		t.Setenv("GITHUB_INST_ID", strconv.FormatInt(instId, 10))
 		_, err := ParseParameters()
 		if err != nil && err.Error() != noKeyError {
 			t.Errorf("expect: %q, got: %q", noKeyError, err.Error())
@@ -146,14 +145,14 @@ func TestNoKeyEnvVar(t *testing.T) {
 }
 
 func TestKeyPathEnvVar(t *testing.T) {
-	runTestWithSetupAndCleanup(t, func(t *testing.T) {
+	runTestWithSetupAndFile(t, func(t *testing.T) {
 		setArgs([]string{"binary"})
-		os.Setenv("GITHUB_APP_ID", strconv.FormatInt(appId, 10))
-		os.Setenv("GITHUB_INST_ID", strconv.FormatInt(instId, 10))
-		os.Setenv("GITHUB_KEY_PATH", string(tmpKeyFile))
+		t.Setenv("GITHUB_APP_ID", strconv.FormatInt(appId, 10))
+		t.Setenv("GITHUB_INST_ID", strconv.FormatInt(instId, 10))
+		t.Setenv("GITHUB_KEY_PATH", string(tmpKeyFile))
 		cfg, err := ParseParameters()
 		if err != nil {
-			t.Fatalf("Uncaught error with environment variables")
+			t.Fatalf("Uncaught error with environment variables: %v", err)
 		}
 		id, _ := strconv.ParseInt(os.Getenv("GITHUB_APP_ID"), 10, 64)
 		if cfg.ApplicationID != id {
@@ -176,11 +175,11 @@ func TestKeyPathEnvVar(t *testing.T) {
 }
 
 func TestKeyValueEnvVar(t *testing.T) {
-	runTestWithSetupAndCleanup(t, func(t *testing.T) {
+	runTestWithSetup(t, func(t *testing.T) {
 		setArgs([]string{"binary"})
-		os.Setenv("GITHUB_APP_ID", strconv.FormatInt(appId, 10))
-		os.Setenv("GITHUB_INST_ID", strconv.FormatInt(instId, 10))
-		os.Setenv("GITHUB_KEY_VALUE", string(testPrivateKey))
+		t.Setenv("GITHUB_APP_ID", strconv.FormatInt(appId, 10))
+		t.Setenv("GITHUB_INST_ID", strconv.FormatInt(instId, 10))
+		t.Setenv("GITHUB_KEY_VALUE", string(testPrivateKey))
 		cfg, err := ParseParameters()
 		if err != nil {
 			t.Fatalf("Uncaught error with environment variables")

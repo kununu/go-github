@@ -53,11 +53,7 @@ func ParseParameters() (*GitHubAppConfig, error) {
 			return nil, err
 		}
 		cfg.PrivateKey = stdin
-		path = ""
-	}
-
-	// There is a path defined
-	if path != "" {
+	} else if path != "" {
 		cfg.PrivateKey, err = os.ReadFile(path)
 		if err != nil {
 			return nil, err
