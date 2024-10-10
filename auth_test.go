@@ -1,19 +1,15 @@
 package github
 
 import (
-	"os"
 	"testing"
 )
 
 func TestBuildJWTToken(t *testing.T) {
-	// Create temp key file
-	tmpKeyFile := "/tmp/key.pem"
-	os.WriteFile(tmpKeyFile, testPrivateKey, 0644)
 
 	// Test Case 1: Invalid private key
 	cfg := &GitHubAppConfig{
-		ApplicationID:  123,
-		PrivateKeyFile: "invalid",
+		ApplicationID: 123,
+		PrivateKey:    []byte("invalid key"),
 	}
 	ghApp := &GitHubApp{
 		Config: cfg,
@@ -25,8 +21,8 @@ func TestBuildJWTToken(t *testing.T) {
 
 	// Test Case 2: Valid private key
 	cfg = &GitHubAppConfig{
-		ApplicationID:  298674,
-		PrivateKeyFile: tmpKeyFile,
+		ApplicationID: 298674,
+		PrivateKey:    []byte(testPrivateKey),
 	}
 	ghApp = &GitHubApp{
 		Config: cfg,
@@ -39,6 +35,4 @@ func TestBuildJWTToken(t *testing.T) {
 		t.Errorf("Empty JWT token")
 	}
 
-	// Cleanup
-	os.Remove(tmpKeyFile)
 }

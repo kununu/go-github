@@ -2,6 +2,8 @@ name: CI
 
 on:
   push:
+    branches:
+    - "**"
     tags:
     - "v*.*.*"
 
@@ -10,5 +12,10 @@ jobs:
     uses: ./.github/workflows/test.yaml
 
   release:
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: [test]
     uses: ./.github/workflows/release.yaml
+
+  docker:
+    needs: [test]
+    uses: ./.github/workflows/docker.yaml
