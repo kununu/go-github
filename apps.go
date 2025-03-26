@@ -9,7 +9,7 @@ import (
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/go-git/go-git/v5"
-	"github.com/google/go-github/v54/github"
+	"github.com/google/go-github/v70/github"
 )
 
 // GitHubApp is a struct to interact with GitHub App's API
