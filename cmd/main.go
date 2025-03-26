@@ -30,6 +30,6 @@ func main() {
 	}
 
 	// Printout GitHub Token
-	fmt.Fprintf(os.Stdout, token)
+	fmt.Fprintf(os.Stdout, "%s", token)
 
 }
