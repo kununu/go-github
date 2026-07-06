@@ -199,3 +199,104 @@ func TestKeyValueEnvVar(t *testing.T) {
 		}
 	})
 }
+
+// setValidCredentialsEnv sets the App ID, Installation ID and key via
+// environment variables so ParseParameters gets past its validation and we can
+// assert on the resolved WaitForChecksToPass value.
+func setValidCredentialsEnv(t *testing.T) {
+	t.Setenv("GITHUB_APP_ID", strconv.FormatInt(appId, 10))
+	t.Setenv("GITHUB_INST_ID", strconv.FormatInt(instId, 10))
+	t.Setenv("GITHUB_KEY_VALUE", string(testPrivateKey))
+}
+
+func TestWaitForChecksDefaultsTrue(t *testing.T) {
+	runTestWithSetup(t, func(t *testing.T) {
+		setArgs([]string{"binary"})
+		setValidCredentialsEnv(t)
+		t.Setenv("GITHUB_WAIT_FOR_CHECKS_TO_PASS", "")
+		cfg, err := ParseParameters()
+		if err != nil {
+			t.Fatalf("Uncaught error with environment variables: %v", err)
+		}
+		if !cfg.WaitForChecksToPass {
+			t.Errorf("WaitForChecksToPass: expect: true, got: false")
+		}
+	})
+}
+
+func TestWaitForChecksEnvVarFalse(t *testing.T) {
+	runTestWithSetup(t, func(t *testing.T) {
+		setArgs([]string{"binary"})
+		setValidCredentialsEnv(t)
+		t.Setenv("GITHUB_WAIT_FOR_CHECKS_TO_PASS", "false")
+		cfg, err := ParseParameters()
+		if err != nil {
+			t.Fatalf("Uncaught error with environment variables: %v", err)
+		}
+		if cfg.WaitForChecksToPass {
+			t.Errorf("WaitForChecksToPass: expect: false, got: true")
+		}
+	})
+}
+
+func TestWaitForChecksEnvVarTrue(t *testing.T) {
+	runTestWithSetup(t, func(t *testing.T) {
+		setArgs([]string{"binary"})
+		setValidCredentialsEnv(t)
+		t.Setenv("GITHUB_WAIT_FOR_CHECKS_TO_PASS", "true")
+		cfg, err := ParseParameters()
+		if err != nil {
+			t.Fatalf("Uncaught error with environment variables: %v", err)
+		}
+		if !cfg.WaitForChecksToPass {
+			t.Errorf("WaitForChecksToPass: expect: true, got: false")
+		}
+	})
+}
+
+func TestWaitForChecksInvalidEnvVar(t *testing.T) {
+	runTestWithSetup(t, func(t *testing.T) {
+		setArgs([]string{"binary"})
+		setValidCredentialsEnv(t)
+		t.Setenv("GITHUB_WAIT_FOR_CHECKS_TO_PASS", "notabool")
+		cfg, err := ParseParameters()
+		if err != nil {
+			t.Fatalf("Uncaught error with environment variables: %v", err)
+		}
+		// An unparseable value is ignored and the default (true) is kept.
+		if !cfg.WaitForChecksToPass {
+			t.Errorf("WaitForChecksToPass: expect: true, got: false")
+		}
+	})
+}
+
+func TestWaitForChecksFlagFalse(t *testing.T) {
+	runTestWithSetup(t, func(t *testing.T) {
+		setArgs([]string{"binary", "-w=false"})
+		setValidCredentialsEnv(t)
+		t.Setenv("GITHUB_WAIT_FOR_CHECKS_TO_PASS", "")
+		cfg, err := ParseParameters()
+		if err != nil {
+			t.Fatalf("Uncaught error with parameters: %v", err)
+		}
+		if cfg.WaitForChecksToPass {
+			t.Errorf("WaitForChecksToPass: expect: false, got: true")
+		}
+	})
+}
+
+func TestWaitForChecksFlagOverridesEnv(t *testing.T) {
+	runTestWithSetup(t, func(t *testing.T) {
+		// An explicit -w=false must win over GITHUB_WAIT_FOR_CHECKS_TO_PASS=true.
+		setArgs([]string{"binary", "-w=false"})
+		setValidCredentialsEnv(t)
+		t.Setenv("GITHUB_WAIT_FOR_CHECKS_TO_PASS", "true")
+		cfg, err := ParseParameters()
+		if err != nil {
+			t.Fatalf("Uncaught error with parameters: %v", err)
+		}
+		if cfg.WaitForChecksToPass {
+			t.Errorf("WaitForChecksToPass: expect: false, got: true")
+		}
+	})
+}

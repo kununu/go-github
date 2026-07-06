@@ -12,6 +12,7 @@ var (
 	appId         int64
 	instId        int64
 	path          string
+	waitForChecks bool
 	noKeyError    = "you need to pass the private key either with '-k' parameter or by setting 'GITHUB_KEY_PATH' or 'GITHUB_KEY_VALUE' or by passing it via STDIN\n"
 	noAppIdError  = "You need to define the App ID via '-a' parameter or 'GITHUB_APP_ID' environment variable\n"
 	noInstIdError = "You need to define the Installation ID via '-i' parameter or 'GITHUB_INST_ID' environment variable\n"
@@ -24,6 +25,7 @@ func ParseParameters() (*GitHubAppConfig, error) {
 	flag.StringVar(&path, "k", "", "Path to key file for authentication")
 	flag.Int64Var(&appId, "a", 0, "App ID to use for authentication")
 	flag.Int64Var(&instId, "i", 0, "Installation ID that identifies the APP installation ID on GitHub")
+	flag.BoolVar(&waitForChecks, "w", true, "Wait for the PR's CI checks to pass before merging")
 	flag.Parse()
 
 	// Get the values from the environment variables if they are set with parameters
@@ -64,9 +66,23 @@ func ParseParameters() (*GitHubAppConfig, error) {
 		return nil, errors.New(noKeyError)
 	}
 
+	// Defaults to true. Fall back to the environment variable only when the
+	// flag was not explicitly passed, so an explicit -w always wins.
+	wFlagSet := false
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == "w" {
+			wFlagSet = true
+		}
+	})
+	if !wFlagSet {
+		if v, err := strconv.ParseBool(os.Getenv("GITHUB_WAIT_FOR_CHECKS_TO_PASS")); err == nil {
+			waitForChecks = v
+		}
+	}
+
 	cfg.ApplicationID = appId
 	cfg.InstallationID = instId
-	cfg.PrivateKey = cfg.PrivateKey
+	cfg.WaitForChecksToPass = waitForChecks
 
 	return cfg, nil
 }
