@@ -23,12 +23,13 @@ type GitHubApp struct {
 
 // Configuration for the GitHub App interaction
 type GitHubAppConfig struct {
-	repoName       string
-	RepoURL        string
-	ApplicationID  int64
-	InstallationID int64
-	LocalPath      string
-	PrivateKey     []byte
+	repoName            string
+	RepoURL             string
+	ApplicationID       int64
+	InstallationID      int64
+	LocalPath           string
+	PrivateKey          []byte
+	WaitForChecksToPass bool
 }
 
 var githubAPIURL string = "https://api.github.com"
