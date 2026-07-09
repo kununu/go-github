@@ -167,7 +167,7 @@ func TestNewPullRequestSkipsChecksWhenDisabled(t *testing.T) {
 		githubClient: newTestClient(t, handler),
 	}
 
-	if err := ghApp.NewPullRequest("feature", "main", "title", "body"); err != nil {
+	if err := ghApp.NewPullRequest("feature", "main", "title", "body", true); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if checksCalled {
@@ -201,7 +201,7 @@ func TestNewPullRequestWaitsForChecksWhenEnabled(t *testing.T) {
 		githubClient: newTestClient(t, handler),
 	}
 
-	if err := ghApp.NewPullRequest("feature", "main", "title", "body"); err != nil {
+	if err := ghApp.NewPullRequest("feature", "main", "title", "body", true); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if !checksCalled {
@@ -209,5 +209,37 @@ func TestNewPullRequestWaitsForChecksWhenEnabled(t *testing.T) {
 	}
 	if !mergeCalled {
 		t.Errorf("PR was not merged")
+	}
+}
+
+func TestNewPullRequestSkipsMergeWhenNotRequested(t *testing.T) {
+	var checksCalled, mergeCalled bool
+
+	handler := http.NewServeMux()
+	handler.HandleFunc("POST /repos/kununu/test-repo/pulls", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`{"number":7,"head":{"sha":"abc123"}}`))
+	})
+	handler.HandleFunc("GET /repos/kununu/test-repo/commits/{ref}/check-runs", func(w http.ResponseWriter, r *http.Request) {
+		checksCalled = true
+		w.Write([]byte(`{"total_count":1,"check_runs":[{"name":"build","status":"completed","conclusion":"success"}]}`))
+	})
+	handler.HandleFunc("PUT /repos/kununu/test-repo/pulls/7/merge", func(w http.ResponseWriter, r *http.Request) {
+		mergeCalled = true
+		w.Write([]byte(`{"merged":true}`))
+	})
+
+	ghApp := &GitHubApp{
+		Config:       &GitHubAppConfig{repoName: "test-repo", WaitForChecksToPass: true},
+		githubClient: newTestClient(t, handler),
+	}
+
+	if err := ghApp.NewPullRequest("feature", "main", "title", "body", false); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if checksCalled {
+		t.Errorf("check runs were polled even though merge was not requested")
+	}
+	if mergeCalled {
+		t.Errorf("PR was merged even though merge was not requested")
 	}
 }
