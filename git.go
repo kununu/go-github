@@ -109,7 +109,7 @@ var (
 )
 
 // Create new pull request
-func (ghApp *GitHubApp) NewPullRequest(source, target, title, body string) error {
+func (ghApp *GitHubApp) NewPullRequest(source, target, title, body string, merge bool) error {
 	ctx := context.Background()
 
 	// Create PR
@@ -126,25 +126,24 @@ func (ghApp *GitHubApp) NewPullRequest(source, target, title, body string) error
 		return err
 	}
 
-	// Optionally wait for checks to pass on the PR's head commit before merging.
-	if ghApp.Config.WaitForChecksToPass {
-		err = waitForChecksToPass(ctx, ghApp.githubClient, "kununu", ghApp.Config.repoName, pr.GetHead().GetSHA())
-		if err != nil {
-			return err
+	if merge {
+
+		if ghApp.Config.WaitForChecksToPass {
+			err = waitForChecksToPass(ctx, ghApp.githubClient, "kununu", ghApp.Config.repoName, pr.GetHead().GetSHA())
+			if err != nil {
+				return err
+			}
 		}
+
+		// Merge PR
+		return mergePullRequest(ctx, ghApp.githubClient, "kununu", ghApp.Config.repoName, pr.GetNumber())
 	}
 
-	// Merge PR
-	return mergePullRequest(ctx, ghApp.githubClient, "kununu", ghApp.Config.repoName, pr.GetNumber())
+	return nil
+
 }
 
-// waitForChecksToPass polls the GitHub Actions check runs for the given ref
-// until they all complete successfully, one of them fails, or the timeout is
-// reached. It relies on the Check Runs API (what Actions report to) rather than
-// the legacy commit-status API, which does not reflect Actions results.
 func waitForChecksToPass(ctx context.Context, client *github.Client, owner, repo, ref string) error {
-	// Bound the whole wait — and every API call made within it — so a stalled
-	// request can never hang indefinitely.
 	ctx, cancel := context.WithTimeout(ctx, checksWaitTimeout)
 	defer cancel()
 
@@ -152,8 +151,6 @@ func waitForChecksToPass(ctx context.Context, client *github.Client, owner, repo
 	defer ticker.Stop()
 
 	for {
-		// Wait one interval before polling so GitHub has time to register the
-		// check runs for a freshly created PR.
 		select {
 		case <-ctx.Done():
 			return fmt.Errorf("timeout while waiting for checks to pass: %w", ctx.Err())
@@ -173,15 +170,11 @@ func waitForChecksToPass(ctx context.Context, client *github.Client, owner, repo
 			}
 			switch run.GetConclusion() {
 			case "success", "skipped", "neutral":
-				// Passed (or intentionally not blocking).
 			default:
-				// failure, cancelled, timed_out, action_required, stale...
 				return fmt.Errorf("check %q did not pass: %s", run.GetName(), run.GetConclusion())
 			}
 		}
 
-		// Require at least one completed check so we never merge before CI has
-		// started. Once every registered check has completed successfully, done.
 		if !pending && result.GetTotal() > 0 {
 			return nil
 		}
